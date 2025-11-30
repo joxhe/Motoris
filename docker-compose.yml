@@ -1,0 +1,132 @@
+version: '3.9'
+
+services:
+  # BASES DE DATOS SEPARADAS (Database per service - DDD REAL)
+  db-auth:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: authdb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - auth_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  db-customer:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: customerdb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - customer_data:/var/lib/postgresql/data
+
+  db-vehicle:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: vehicledb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - vehicle_data:/var/lib/postgresql/data
+
+  db-appointment:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: appointmentdb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - appointment_data:/var/lib/postgresql/data
+
+  db-inventory:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: inventorydb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - inventory_data:/var/lib/postgresql/data
+
+  db-billing:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: billingdb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - billing_data:/var/lib/postgresql/data
+
+  # MICROSERVICIOS
+  auth-service:
+    build: ./auth-service
+    environment:
+      DATABASE_URL: postgresql://admin:123456@db-auth:5432/authdb
+      JWT_SECRET: super-secreto-motoris-2025
+    depends_on:
+      - db-auth
+
+  customer-service:
+    build: ./customer-service
+    environment:
+      DATABASE_URL: postgresql://admin:123456@db-customer:5432/customerdb
+    depends_on:
+      - db-customer
+
+  vehicle-service:
+    build: ./vehicle-service
+    environment:
+      DATABASE_URL: postgresql://admin:123456@db-vehicle:5432/vehicledb
+    depends_on:
+      - db-vehicle
+
+  appointment-service:
+    build: ./appointment-service
+    environment:
+      DATABASE_URL: postgresql://admin:123456@db-appointment:5432/appointmentdb
+    depends_on:
+      - db-appointment
+
+  inventory-service:
+    build: ./inventory-service
+    environment:
+      DATABASE_URL: postgresql://admin:123456@db-inventory:5432/inventorydb
+    depends_on:
+      - db-inventory
+
+  billing-service:
+    build: ./billing-service
+    environment:
+      DATABASE_URL: postgresql://admin:123456@db-billing:5432/billingdb
+    depends_on:
+      - db-billing
+
+  # API GATEWAY (EL QUE REDIRIGE TODO)
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "3000:3000"
+    depends_on:
+      - auth-service
+      - customer-service
+      - vehicle-service
+      - appointment-service
+      - inventory-service
+      - billing-service
+
+  # FRONTEND
+  frontend-react:
+    build: ./frontend-react
+    ports:
+      - "5173:80"
+    depends_on:
+      - api-gateway
+
+volumes:
+  auth_data:
+  customer_data:
+  vehicle_data:
+  appointment_data:
+  inventory_data:
+  billing_data:

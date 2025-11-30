@@ -1,0 +1,23 @@
+{
+  "name": "appointment-service",
+  "version": "1.0.0",
+  "description": "MOTORIS - Appointment Service (Core Domain)",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "keywords": ["microservices", "ddd", "motoris"],
+  "author": "Tu Nombre",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "@prisma/client": "^5.7.0",
+    "cors": "^2.8.5",
+    "bcrypt": "^5.1.1",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "prisma": "^5.7.0"
+  }
+}
