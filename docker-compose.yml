@@ -1,9 +1,8 @@
-version: '3.9'
-
 services:
-  # BASES DE DATOS SEPARADAS (Database per service - DDD REAL)
+  # ==================== BASES DE DATOS ====================
   db-auth:
-    image: postgres:15
+    image: postgres:15-alpine
+    container_name: motoris-db-auth
     environment:
       POSTGRES_DB: authdb
       POSTGRES_USER: admin
@@ -12,121 +11,286 @@ services:
       - auth_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d authdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - motoris-network
 
   db-customer:
-    image: postgres:15
+    image: postgres:15-alpine
+    container_name: motoris-db-customer
     environment:
       POSTGRES_DB: customerdb
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: 123456
     volumes:
       - customer_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d customerdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - motoris-network
 
   db-vehicle:
-    image: postgres:15
+    image: postgres:15-alpine
+    container_name: motoris-db-vehicle
     environment:
       POSTGRES_DB: vehicledb
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: 123456
     volumes:
       - vehicle_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d vehicledb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - motoris-network
 
   db-appointment:
-    image: postgres:15
+    image: postgres:15-alpine
+    container_name: motoris-db-appointment
     environment:
       POSTGRES_DB: appointmentdb
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: 123456
     volumes:
       - appointment_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d appointmentdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - motoris-network
 
   db-inventory:
-    image: postgres:15
+    image: postgres:15-alpine
+    container_name: motoris-db-inventory
     environment:
       POSTGRES_DB: inventorydb
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: 123456
     volumes:
       - inventory_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d inventorydb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - motoris-network
 
   db-billing:
-    image: postgres:15
+    image: postgres:15-alpine
+    container_name: motoris-db-billing
     environment:
       POSTGRES_DB: billingdb
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: 123456
     volumes:
       - billing_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d billingdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - motoris-network
 
-  # MICROSERVICIOS
+  # ==================== MICROSERVICIOS (CON PUERTOS EXPUESTOS PARA DESARROLLO) ====================
   auth-service:
     build: ./auth-service
+    container_name: motoris-auth-service
+    ports:
+      - "3001:3000"           # ← Acceso directo para Postman
     environment:
       DATABASE_URL: postgresql://admin:123456@db-auth:5432/authdb
       JWT_SECRET: super-secreto-motoris-2025
+      PORT: 3000
     depends_on:
-      - db-auth
+      db-auth:
+        condition: service_healthy
+    restart: on-failure:5
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - motoris-network
 
   customer-service:
     build: ./customer-service
+    container_name: motoris-customer-service
+    ports:
+      - "3002:3000"
     environment:
       DATABASE_URL: postgresql://admin:123456@db-customer:5432/customerdb
+      PORT: 3000
     depends_on:
-      - db-customer
+      db-customer:
+        condition: service_healthy
+    restart: on-failure:5
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - motoris-network
 
   vehicle-service:
     build: ./vehicle-service
+    container_name: motoris-vehicle-service
+    ports:
+      - "3003:3000"
     environment:
       DATABASE_URL: postgresql://admin:123456@db-vehicle:5432/vehicledb
+      PORT: 3000
     depends_on:
-      - db-vehicle
+      db-vehicle:
+        condition: service_healthy
+    restart: on-failure:5
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - motoris-network
 
   appointment-service:
     build: ./appointment-service
+    container_name: motoris-appointment-service
+    ports:
+      - "3004:3000"
     environment:
       DATABASE_URL: postgresql://admin:123456@db-appointment:5432/appointmentdb
+      PORT: 3000
     depends_on:
-      - db-appointment
+      db-appointment:
+        condition: service_healthy
+    restart: on-failure:5
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - motoris-network
 
   inventory-service:
     build: ./inventory-service
+    container_name: motoris-inventory-service
+    ports:
+      - "3005:3000"
     environment:
       DATABASE_URL: postgresql://admin:123456@db-inventory:5432/inventorydb
+      PORT: 3000
     depends_on:
-      - db-inventory
+      db-inventory:
+        condition: service_healthy
+    restart: on-failure:5
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - motoris-network
 
   billing-service:
     build: ./billing-service
+    container_name: motoris-billing-service
+    ports:
+      - "3006:3000"
     environment:
       DATABASE_URL: postgresql://admin:123456@db-billing:5432/billingdb
+      PORT: 3000
     depends_on:
-      - db-billing
+      db-billing:
+        condition: service_healthy
+    restart: on-failure:5
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - motoris-network
 
-  # API GATEWAY (EL QUE REDIRIGE TODO)
+  # ==================== API GATEWAY ====================
   api-gateway:
     build: ./api-gateway
+    container_name: motoris-api-gateway
     ports:
-      - "3000:3000"
+      - "3000:3000"           # ← Este sí lo dejamos siempre expuesto
+    environment:
+      PORT: 3000
     depends_on:
-      - auth-service
-      - customer-service
-      - vehicle-service
-      - appointment-service
-      - inventory-service
-      - billing-service
+      auth-service:
+        condition: service_healthy
+      customer-service:
+        condition: service_healthy
+      vehicle-service:
+        condition: service_healthy
+      appointment-service:
+        condition: service_healthy
+      inventory-service:
+        condition: service_healthy
+      billing-service:
+        condition: service_healthy
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - motoris-network
 
-  # FRONTEND
+  # ==================== FRONTEND ====================
   frontend-react:
     build: ./frontend-react
+    container_name: motoris-frontend
     ports:
       - "5173:80"
     depends_on:
-      - api-gateway
+      api-gateway:
+        condition: service_healthy
+    restart: on-failure
+    networks:
+      - motoris-network
 
+# ==================== VOLUMES Y NETWORKS ====================
 volumes:
   auth_data:
+    name: motoris_auth_data
   customer_data:
+    name: motoris_customer_data
   vehicle_data:
+    name: motoris_vehicle_data
   appointment_data:
+    name: motoris_appointment_data
   inventory_data:
+    name: motoris_inventory_data
   billing_data:
+    name: motoris_billing_data
+
+networks:
+  motoris-network:
+    name: motoris-network
+    driver: bridge

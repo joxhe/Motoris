@@ -1,12 +1,34 @@
 const express = require('express');
-const cors = require('cors');
-const routes = require('./routes/inventory.routes');
+const cors = require('cors');                 // ← NUEVO
+const { PrismaClient } = require('@prisma/client');
 
 const app = express();
-app.use(cors());
+const prisma = new PrismaClient();
+
+// ==== CORS PARA DESARROLLO LOCAL ====
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:5174', 'http://127.0.0.1:5173', 'http://127.0.0.1:5174'],
+  credentials: true
+}));
+// =====================================
+
 app.use(express.json());
-app.use('/parts', routes);
 
-app.get('/', (req, res) => res.json({ service: "Inventory Service - MOTORIS", status: "OK" }));
+// Tus rutas aquí (ejemplo appointment-service)
+app.get('/appointments', async (req, res) => {
+  const appointments = await prisma.appointment.findMany();
+  res.json(appointments);
+});
 
-app.listen(3005, () => console.log('Inventory Service en puerto 3005'));
+app.post('/appointments', async (req, res) => {
+  const appointment = await prisma.appointment.create({ data: req.body });
+  res.status(201).json(appointment);
+});
+
+// Health check
+app.get('/', (req, res) => {
+  res.json({ service: "Appointment Service - MOTORIS", status: "OK" });
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Service corriendo en puerto ${PORT}`));

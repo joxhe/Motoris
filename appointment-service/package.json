@@ -4,18 +4,19 @@
   "description": "MOTORIS - Appointment Service (Core Domain)",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "start": "node src/server.js"
   },
-  "keywords": ["microservices", "ddd", "motoris"],
-  "author": "Tu Nombre",
+  "keywords": [
+    "microservices",
+    "ddd",
+    "motoris"
+  ],
+  "author": "CECAR 2025",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
     "@prisma/client": "^5.7.0",
     "cors": "^2.8.5",
-    "bcrypt": "^5.1.1",
-    "jsonwebtoken": "^9.0.2"
+    "express": "^4.18.2"
   },
   "devDependencies": {
     "prisma": "^5.7.0"

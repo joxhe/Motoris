@@ -7,64 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ====== AUTH SERVICE ======
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String?
-  role      String   @default("user")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ====== CUSTOMER SERVICE ======
-model Customer {
-  id        String   @id @default(cuid())
-  name      String
-  phone     String?
-  email     String?
-  address   String?
-  createdAt DateTime @default(now())
-}
-
-// ====== VEHICLE SERVICE ======
-model Vehicle {
-  id           String   @id @default(cuid())
-  plate        String   @unique
-  brand        String
-  model        String
-  year         Int
-  customerId   String
-  createdAt    DateTime @default(now())
-}
-
-// ====== APPOINTMENT SERVICE (CORE DOMAIN) ======
-model Appointment {
-  id          String   @id @default(cuid())
-  vehicleId   String
-  customerId  String
-  date        DateTime
-  status      String   @default("pending")
-  description String?
-  createdAt   DateTime @default(now())
-}
-
-// ====== INVENTORY SERVICE ======
 model Part {
-  id          String  @id @default(cuid())
-  name        String
-  code        String  @unique
-  stock       Int     @default(0)
-  price       Float
-  supplier    String?
-}
-
-// ====== BILLING SERVICE ======
-model Invoice {
-  id            String   @id @default(cuid())
-  appointmentId String
-  total         Float
-  status        String   @default("pending")
-  issuedAt      DateTime @default(now())
+  id       String  @id @default(cuid())
+  name     String
+  code     String  @unique
+  stock    Int     @default(0)
+  price    Float
+  supplier String?
 }

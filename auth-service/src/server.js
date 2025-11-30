@@ -1,9 +1,18 @@
 const express = require('express');
-const bcrypt = require('bcrypt');
+const cors = require('cors');                 // ← NUEVO
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+
 const app = express();
+const prisma = new PrismaClient();
+
+// ==== CORS PARA DESARROLLO LOCAL ====
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:5174', 'http://127.0.0.1:5173', 'http://127.0.0.1:5174'],
+  credentials: true
+}));
+// =====================================
 
 app.use(express.json());
 
@@ -30,10 +39,16 @@ app.post('/login', async (req, res) => {
   }
   const token = jwt.sign(
     { id: user.id, email: user.email, role: user.role },
-    process.env.JWT_SECRET || "motoris-secret-2025",
+    process.env.JWT_SECRET || "super-secreto-motoris-2025",
     { expiresIn: '24h' }
   );
   res.json({ token, user: { id: user.id, email: user.email, role: user.role } });
 });
 
-app.listen(3000, () => console.log('Auth Service en puerto 3000'));
+// Health check
+app.get('/', (req, res) => {
+  res.json({ service: "Auth Service - MOTORIS", status: "OK" });
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Auth Service en puerto ${PORT}`));
